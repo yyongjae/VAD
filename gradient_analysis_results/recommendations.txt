@@ -1,0 +1,52 @@
+======================================================================
+VAD GRADIENT CONFLICT ANALYSIS - RECOMMENDATIONS
+======================================================================
+
+1. OVERALL CONFLICT ASSESSMENT
+----------------------------------------
+  HIGH CONFLICT: plan_vs_det (conflict rate: 56.2%)
+  HIGH CONFLICT: det_vs_map (conflict rate: 51.6%)
+  HIGH CONFLICT: map_vs_motion (conflict rate: 51.6%)
+  HIGH CONFLICT: plan_vs_map (conflict rate: 50.0%)
+  HIGH CONFLICT: plan_vs_motion (conflict rate: 37.5%)
+
+2. GRADIENT MAGNITUDE IMBALANCE
+----------------------------------------
+  det       : norm=12.6019  (ratio to plan: 13.9x) << DOMINATES
+  map       : norm=3.1804  (ratio to plan: 3.5x)
+  motion    : norm=1.9639  (ratio to plan: 2.2x)
+  plan      : norm=0.9040  (ratio to plan: 1.0x)
+
+  RECOMMENDATION: Consider gradient norm balancing (GradNorm, IMTL)
+  to prevent plan gradient from being dominated.
+
+3. INTERFERENCE ON PLAN
+----------------------------------------
+  det        -> plan: 0.8372 (MODERATE)
+  map        -> plan: 0.2238 (LOW)
+  motion     -> plan: 0.1163 (LOW)
+
+4. PER-LAYER CONFLICT HOTSPOTS
+----------------------------------------
+  Top 15 most conflicting (layer, pair):
+    bev1_norm_1                    | map_vs_motion        | cos=-0.1769 | conflict=65.6%
+    bev1_spatial_cross_attn        | map_vs_motion        | cos=-0.1177 | conflict=59.4%
+    bev1_norm_0                    | map_vs_motion        | cos=-0.1027 | conflict=60.9%
+    bev1_spatial_cross_attn        | plan_vs_det          | cos=-0.0961 | conflict=51.6%
+    bev0_norm_0                    | map_vs_motion        | cos=-0.0655 | conflict=57.8%
+    bev1_spatial_cross_attn        | plan_vs_motion       | cos=-0.0554 | conflict=59.4%
+    bev2_norm_0                    | det_vs_map           | cos=-0.0539 | conflict=62.5%
+    bev1_norm_1                    | det_vs_map           | cos=-0.0426 | conflict=51.6%
+    bev0_norm_0                    | plan_vs_motion       | cos=-0.0414 | conflict=54.7%
+    bev0_norm_2                    | map_vs_motion        | cos=-0.0407 | conflict=54.7%
+    bev0_ffn                       | map_vs_motion        | cos=-0.0399 | conflict=59.4%
+    bev0_spatial_cross_attn        | plan_vs_motion       | cos=-0.0395 | conflict=50.0%
+    bev0_norm_1                    | plan_vs_det          | cos=-0.0325 | conflict=50.0%
+    bev1_norm_1                    | plan_vs_det          | cos=-0.0289 | conflict=51.6%
+    bev1_temporal_self_attn        | map_vs_motion        | cos=-0.0271 | conflict=67.2%
+
+5. SUGGESTED ACTIONS
+----------------------------------------
+  - Apply PCGrad or CAGrad to resolve directional conflicts.
+  - Focus gradient surgery on: bev0_ffn, bev0_norm_0, bev0_norm_1, bev0_norm_2, bev0_spatial_cross_attn, bev0_temporal_self_attn, bev1_ffn, bev1_norm_0, bev1_norm_1, bev1_norm_2, bev1_spatial_cross_attn, bev1_temporal_self_attn, bev2_ffn, bev2_norm_0, bev2_norm_1, bev2_norm_2, bev2_spatial_cross_attn, bev2_temporal_self_attn
+  - Apply GradNorm or dynamic loss weighting to balance plan signal.

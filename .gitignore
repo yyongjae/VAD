@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# analyze branch — local data + heavy deps not tracked
+data/
+mmdetection3d/
+.omc/
