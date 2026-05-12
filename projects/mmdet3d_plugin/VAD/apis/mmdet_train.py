@@ -7,7 +7,7 @@ import torch.distributed as dist
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import (HOOKS, DistSamplerSeedHook, EpochBasedRunner,
                          Fp16OptimizerHook, OptimizerHook, build_optimizer,
-                         build_runner, get_dist_info)
+                         build_runner, get_dist_info, load_checkpoint)
 from mmcv.utils import build_from_cfg
 
 from mmdet.core import EvalHook
@@ -61,6 +61,16 @@ def custom_train_detector(model,
             nonshuffler_sampler=cfg.data.nonshuffler_sampler,  # dict(type='DistributedSampler'),
         ) for ds in dataset
     ]
+
+    if cfg.load_from and not cfg.resume_from:
+        logger.info('Load checkpoint before DDP wrapping: %s', cfg.load_from)
+        load_checkpoint(
+            model,
+            cfg.load_from,
+            map_location='cpu',
+            strict=False,
+            logger=logger)
+        cfg.load_from = None
 
     # put model on gpus
     if distributed:
@@ -192,4 +202,3 @@ def custom_train_detector(model,
     elif cfg.load_from:
         runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow)
-

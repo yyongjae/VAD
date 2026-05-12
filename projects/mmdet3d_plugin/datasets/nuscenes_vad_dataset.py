@@ -1761,6 +1761,9 @@ class VADCustomNuScenesDataset(NuScenesDataset):
         Returns:
             dict[str, float]: Results of each evaluation metric.
         """
+        if isinstance(results, dict):
+            results = results['bbox_results']
+
         result_metric_names = ['EPA', 'ADE', 'FDE', 'MR']
         motion_cls_names = ['car', 'pedestrian']
         motion_metric_names = ['gt', 'cnt_ade', 'cnt_fde', 'hit',
